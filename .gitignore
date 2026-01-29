@@ -12,3 +12,8 @@ AI-Engineering-Intermediate/Part1/vector_db/
 # Python cache
 __pycache__/
 **/__pycache__/
+
+# my files
+activation
+test.py
+AI-Engineering-Essentials/Part1/test.py
