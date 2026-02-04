@@ -17,3 +17,5 @@ __pycache__/
 activation
 test.py
 AI-Engineering-Essentials/Part1/test.py
+
+.vscode/settings.json
