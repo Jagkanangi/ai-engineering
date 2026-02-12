@@ -11,7 +11,7 @@ class llama3(AbstractChatClient):
 
     def initialize_client(self):
         """
-        Initializes the OpenAI client.
+        point to where the server is running. I am getting it from the env file but if it is not present just hardcoding it for now
         """
         lamma_base_url =os.getenv("LLAMA_BASE_URL")
         if not lamma_base_url:
@@ -23,7 +23,7 @@ class llama3(AbstractChatClient):
                         )
     def chat(self, prompt, temperature=0, max_tokens=500, model=None, print_messages = True) -> str:
         """
-        Gets a completion from the OpenAI API.
+        Gets a completion from the ollama.
         """
         content : str | None = None
         """

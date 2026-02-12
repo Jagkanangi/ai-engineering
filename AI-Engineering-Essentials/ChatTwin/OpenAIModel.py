@@ -1,7 +1,6 @@
 import os
 import openai as client
-from dotenv import load_dotenv
-load_dotenv()
+
 from AbstractModel import AbstractChatClient
 
 class OpenAIModel(AbstractChatClient):
