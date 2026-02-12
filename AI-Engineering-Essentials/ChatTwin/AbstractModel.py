@@ -1,14 +1,17 @@
 from abc import ABC, abstractmethod
 from typing import Any
+from dotenv import load_dotenv
 
 class AbstractChatClient(ABC):
     def __init__(self, model_name, model_key, model_role_type = "You are an assistant"):
+        load_dotenv()
         self.model_name = model_name
         self.model_key = model_key
         self.messages = []
         self.model_role_type = model_role_type
         self.SYSTEM_ROLE = "system"
         self.USER_ROLE = "user"
+        self.ASSISTANT_ROLE = "assistant"
         self.add_message(self.SYSTEM_ROLE, model_role_type)
 
     @abstractmethod
