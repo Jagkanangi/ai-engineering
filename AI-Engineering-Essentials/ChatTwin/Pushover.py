@@ -24,5 +24,3 @@ class PushOver:
             print("Failed to send message. Status code:", response.status_code)
             print("Response:", response.text)
 
-pushover = PushOver()
-pushover.send_message("Hello from ChatTwin!")
