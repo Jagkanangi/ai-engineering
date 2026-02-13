@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 from dotenv import load_dotenv
+from openai.types.chat import ChatCompletionMessage, ChatCompletionMessageToolCallUnion
 
 class AbstractChatClient(ABC):
     def __init__(self, model_name, model_key, model_role_type = "You are an assistant"):
@@ -12,6 +13,7 @@ class AbstractChatClient(ABC):
         self.SYSTEM_ROLE = "system"
         self.USER_ROLE = "user"
         self.ASSISTANT_ROLE = "assistant"
+        self.TOOL_ROLE = "tool"
         self.add_message(self.SYSTEM_ROLE, model_role_type)
 
     @abstractmethod
@@ -21,6 +23,16 @@ class AbstractChatClient(ABC):
     @abstractmethod
     def chat(self, prompt, temperature = 0, max_tokens = 500, model = None) -> str:
         pass
+    
+    def add_tool_message(self, assistant_msg : ChatCompletionMessage, content : str):
+        self.messages.append(assistant_msg)
+        if(assistant_msg.tool_calls is not None and len(assistant_msg.tool_calls) > 0):
+            self.messages.append(
+                {"role": self.TOOL_ROLE,
+                "tool_call_id": assistant_msg.tool_calls[0].id,
+                "content": content
+                }
+            )
 
     def add_message(self, role, content):
         self.messages.append({"role": role, "content": content})

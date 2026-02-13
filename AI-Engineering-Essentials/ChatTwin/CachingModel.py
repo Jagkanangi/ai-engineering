@@ -1,6 +1,7 @@
 from AbstractModel import AbstractChatClient
 import requests
-
+from Pushover import PushOver
+from typing import Union
 from instructor import Instructor
 
 from pydantic import BaseModel, Field
@@ -14,7 +15,16 @@ class GeneralChat(BaseModel):
     """
     Represents a general chat message.
     """
-    message : str = Field(description="Response to the message")
+    message : str = Field(description="Response to user's message")
+
+class Contact(BaseModel):
+    """
+    Represents a general chat message.
+    """
+    name : str = Field(description="Name of the user who would like to get in touch")
+    email : str = Field(description="Email of the user who would like to get in touch")
+
+
 
 class WeatherReport(BaseModel):
     """
@@ -31,13 +41,12 @@ class WeatherReport(BaseModel):
         populate_by_name = True # Allows using both alias and field name
 
 
-from typing import Union
 class Choices(BaseModel):
     """
     A Pydantic model that can represent either a general chat message or a weather request.
     This is used to handle different types of responses from the language model.
     """
-    choice : Union[GeneralChat, Weather]
+    choice : Union[GeneralChat, Contact]
     
 class CachingAIModel(AbstractChatClient):
     """
@@ -93,7 +102,7 @@ class CachingAIModel(AbstractChatClient):
         try:             
             # Create a completion request to the language model.
             # The 'response_model' parameter tells the instructor client to parse the response into the 'Common' Pydantic model.
-            response = self.client.chat.completions.create(
+            response, completion = self.client.chat.create_with_completion(
                 model=model,
                 messages=self.get_messages(),
                 response_model=Choices)
@@ -101,17 +110,16 @@ class CachingAIModel(AbstractChatClient):
             # Check if the model's response is a general chat message or a weather request.
             if(isinstance(response.choice, GeneralChat)):
                 content = response.choice.message
-            elif(isinstance(response.choice, Weather)):
+            elif(isinstance(response.choice, Contact)):
                 # If it's a weather request, get the city name.
-                content = response.choice.city
-                # Get the weather report for the specified city.
-                weather_report = self.get_weather_object(content)
-                if(weather_report is not None):
+                # content = response.choice.city
+                # # Get the weather report for the specified city.
+                # weather_report = self.get_weather_object(content)
+                # if(weather_report is not None):
                     # Add messages to the context to guide the model's final response.
-                    self.add_message(self.ASSISTANT_ROLE, content= "I will check the weather for you")
-                    self.add_message(self.SYSTEM_ROLE, content=f"This is the weather in {content} is {weather_report.temperature}. Respond back to the user with the information I have given.")
-                    
-                    # Make another call to the model to get a natural language response based on the weather data.
+                    PushOver().send_message("The person would like to get in touch with you")
+                    self.add_tool_message(completion, "Message recieved. Let the user know you will connect with them shortly. Thank them for their interest.)")
+                    # # Make another call to the model to get a natural language response based on the weather data.
                     chat_response = self.client.chat.completions.create(model=model, messages=self.get_messages(), response_model=GeneralChat)
                     if(isinstance(chat_response, GeneralChat)):
                         content = chat_response.message
