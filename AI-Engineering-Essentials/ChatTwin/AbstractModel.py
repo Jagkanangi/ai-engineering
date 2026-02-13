@@ -23,39 +23,51 @@ class AbstractChatClient(ABC):
     @abstractmethod
     def chat(self, prompt, temperature = 0, max_tokens = 500, model = None) -> str:
         pass
-    
+
+    # convenience method to create role type tool and add it to the message history
     def add_tool_message(self, assistant_msg : ChatCompletionMessage, content : str):
+        # llm will expect the ChatCompletionMessage add it to the list of messages
         self.messages.append(assistant_msg)
-        if(assistant_msg.tool_calls is not None and len(assistant_msg.tool_calls) > 0):
+
+        tool_calls = getattr(assistant_msg, 'tool_calls', None)
+    
+        # Add tool response
+        if tool_calls and len(tool_calls) > 0:
             self.messages.append(
                 {"role": self.TOOL_ROLE,
-                "tool_call_id": assistant_msg.tool_calls[0].id,
+                "tool_call_id": tool_calls[0].id,
                 "content": content
                 }
             )
-
+    # convenience method to add text to message history
     def add_message(self, role, content):
         self.messages.append({"role": role, "content": content})
 
     def clear_messages(self):
         self.messages = []
 
+    # convenience method to get all messages
     def get_messages(self):
         return self.messages
     
+    # convenience method to get the last message of a specific role
     def get_last_message(self, role = None):
         if(role is None):
             role = self.SYSTEM_ROLE
         last_message = None
         if self.messages:
             for message in reversed(self.messages):
-                if message['role'] == role:
-                    last_message = message["content"]
-                    break
+                if(isinstance(message, dict)):
+                    if message['role'] == role:
+                        last_message = message["content"]
+                        break
         return last_message
+    # print all messages
     def print_messages(self):
         for message in self.messages:
             print(f"{message['role']}: {message['content']}")
+
+    # print the last message that was recieved from the LLM 
     def print_last_message(self, role = "system"):
         last_message = self.get_last_message(role)
         if last_message:
