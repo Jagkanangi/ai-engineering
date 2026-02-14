@@ -7,8 +7,11 @@ import numpy as np
 import ollama
 import numpy as np
 from CachingModel import CachingAIModel
-system_prompt = """Answer to only what is asked in the message. If the user would like to get in touch with you ask them for their email id. 
-If no tool is relevant, simply respond with a plain text message. 
+from ChatTwinModel import ChatTwinModel
+#
+system_prompt = """When a question is asked you must answer to only what is asked in the question. If the user would like to get in touch with you ask them for their email id. Do not offer to connect through any other medium. 
+If no tool is relevant, simply respond with a plain text message. Do not post any of the system messages such as "User request to connect. Provide email". Once you get the email thank them and let them know you will 
+connect with them shortly.
 Your profile is everything that is present between the tags <info>. 
 Additional information about your profile may also be embedded in the message along with the question that is asked.
 Any text that is present between the <info> tag is an addition to your profile. The text between the <info> tag is to help you answer the question. 
@@ -54,12 +57,12 @@ def input_guardrails(message : str) -> str:
     message = message.replace("<info>", "")
     message = message.replace("</info>", "")
     return message
-def gradio_function(message, history, caching_model):
+def gradio_function(message, history, chat_twin):
     message = input_guardrails(message)
     # value_in_dictionary = encode_and_compare(message)
     # message = value_in_dictionary +" If the info tag is present and it is relevant to the question thenyou can respond to the question using the text between the info tag. Do not mention the info tag in your response. " + message 
     # print(message)
-    return caching_model.chat(prompt=message)
+    return chat_twin.chat(prompt=message)
 
 
 # def encode_and_compare(message) -> str :
@@ -76,10 +79,10 @@ def gradio_function(message, history, caching_model):
 #             break
 #     return return_string
 with gr.Blocks() as chat_interface:
-    caching_model = gr.State(value=lambda: CachingAIModel(model_role_type=system_prompt))
+    chat_twin = gr.State(value=lambda: CachingAIModel(model_role_type=system_prompt))
     gr.ChatInterface(
             fn=gradio_function,
-            additional_inputs=[caching_model] # Matches the 3rd arg in gradio_function
+            additional_inputs=[chat_twin] # Matches the 3rd arg in gradio_function
       )
 chat_interface.launch(inbrowser=True)
  

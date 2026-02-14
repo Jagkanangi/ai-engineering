@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 from dotenv import load_dotenv
-from openai.types.chat import ChatCompletionMessage, ChatCompletionMessageToolCallUnion
+from openai.types.chat import ChatCompletionMessage
 
 class AbstractChatClient(ABC):
     def __init__(self, model_name, model_key, model_role_type = "You are an assistant"):
@@ -26,16 +26,11 @@ class AbstractChatClient(ABC):
 
     # convenience method to create role type tool and add it to the message history
     def add_tool_message(self, assistant_msg : ChatCompletionMessage, content : str):
-        # llm will expect the ChatCompletionMessage add it to the list of messages
-        self.messages.append(assistant_msg)
-
-        tool_calls = getattr(assistant_msg, 'tool_calls', None)
-    
-        # Add tool response
-        if tool_calls and len(tool_calls) > 0:
+        self.messages.append(assistant_msg.model_dump())
+        if(assistant_msg.tool_calls is not None and len(assistant_msg.tool_calls) > 0):
             self.messages.append(
                 {"role": self.TOOL_ROLE,
-                "tool_call_id": tool_calls[0].id,
+                "tool_call_id": assistant_msg.tool_calls[0].id,
                 "content": content
                 }
             )
